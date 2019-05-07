@@ -660,8 +660,9 @@ sudo apt install tcpd
 
 # 3.4.3 Ensure /etc/hosts.deny is configured
 # ===================================================
+# For this section, user supervision is required.
 
-echo "ALL: ALL" >> /etc/hosts.deny
+# echo "ALL: ALL" >> /etc/hosts.deny
 
 # 3.4.4 Ensure permissions on /etc/hosts.allow is configured
 # ===========================================================

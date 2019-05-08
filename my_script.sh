@@ -378,6 +378,15 @@ do
 
         chown root:root $current_file
         chmod 644 $current_file
+    else
+        # Create file
+
+        touch $current_file
+
+        if [ $current_file == "${FILES[1]}" ]
+        then
+            search_and_replace_entire_line 'Authorized' 'Authorized uses only. All activity may be monitored and reported.' '/etc/issue' 0
+        fi
 
     fi
 

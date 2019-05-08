@@ -45,13 +45,40 @@ then
     echo "Root password: EXIST"
 else
 
-    if ! grep ^root:[*\!]: /etc/shadow
-    then
-        echo "Root password: EXIST"
-    else
-        echo "Root password: I sleep."
-        passwd root
-    fi
+    FILES=( "/etc/motd" "/etc/issue" "/etc/issue.net" )
+
+    # Loop through the files
+    for current_file in "${FILES[@]}"
+    do
+
+        # Check if file exists.
+        if [ -f $current_file ]
+        then
+
+            # Replace \v \r \m \s with blank char
+            sudo sed -i -r 's/(\\v|\\r|\\m|\\s)//g' $current_file
+
+            # 1.7.1.4 Ensure permissions on /etc/motd are configured
+            # 1.7.1.5 Ensure permissions on /etc/issue are configured
+            # 1.7.1.6 Ensure permissions on /etc/issue.net are configured
+            # ==============================================================
+
+            chown root:root $current_file
+            chmod 644 $current_file
+        else
+            # Create file
+
+            # touch $current_file
+
+            if [ $current_file == "${FILES[1]}" ]
+            then
+                # search_and_replace_entire_line 'Authorized' 'Authorized uses only. All activity may be monitored and reported.' '/etc/issue' 0
+                echo "ayylmao"
+            fi
+
+        fi
+
+    done
 
     echo "Root password: I sleep."
 fi

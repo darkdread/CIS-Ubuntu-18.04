@@ -45,17 +45,39 @@ then
     echo "Root password: EXIST"
 else
 
-    # SEARCH_STRING=( "net.ipv4.ip_forward" "net.ipv4.conf.all.send_redirects" "net.ipv4.conf.default.send_redirects" )
-    # REPLACE_STRING=( "net.ipv4.ip_forward = 0" "net.ipv4.conf.all.send_redirects = 0" "net.ipv4.conf.default.send_redirects = 0" )
+    # 1.4.2 Ensure bootloader password is set
+    # ===========================================
 
-    # regex not working?
-    search_and_replace_entire_line "Protocol" "Protocol 2" "/etc/ssh/sshd_config" 0
+    # Check if there's boot password for boot loader.
+    if ( grep -q "^set superusers" /boot/grub/grub.cfg )
+    then
+        echo "Superusers: EXIST"
+    else
+        echo "Superusers: I sleep."
 
-    # sysctl -w net.ipv4.ip_forward=0
-    # sysctl -w net.ipv4.conf.all.send_redirects=0
-    # sysctl -w net.ipv4.conf.default.send_redirects=0
+        FILE=/home/out
 
-    # sysctl -w net.ipv4.route.flush=1
+        # Create boot password for boot loader.
+        grub-mkpasswd-pbkdf2 | sudo tee "$FILE"
+
+        enc_pass=$( grep .sha512 "$FILE" | awk -F "is " '{print $2}' )
+
+        # Remove out file
+        rm "$FILE"
+
+        FILE=/etc/grub.d/40_custom
+        LINE="set superusers=\"root\""
+
+        enc_pass="password_pbkdf2 root $enc_pass"
+
+        # Append superusers and password if not exist.
+        grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
+        grep -qF "$enc_pass" "$FILE" || echo "$enc_pass" | sudo tee --append "$FILE" > /dev/null
+
+        # Update grub config file
+        update-grub
+
+    fi
 
     echo "Root password: I sleep."
 fi

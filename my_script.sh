@@ -8,6 +8,10 @@ HARDENING_LEVEL=1
 # Debug mode
 DEBUG_MODE=1
 
+# Disabling SAFE_SSH will cause issues.
+SAFE_SSH=1
+
+
 # $1 is the search string
 # $2 is the replace string
 # $3 is the path to file
@@ -218,34 +222,39 @@ sudo chmod u+rw,og-rwx /boot/grub/grub.cfg
 # ===========================================
 
 # Check if there's boot password for boot loader.
-if ( grep -q "^set superusers" /boot/grub/grub.cfg )
+
+if [ $SAFE_SSH != 1 ]
 then
-    echo "Superusers: EXIST"
-else
-    echo "Superusers: I sleep."
 
-    FILE=/home/out
+    if ( grep -q "^set superusers" /boot/grub/grub.cfg )
+    then
+        echo "Superusers: EXIST"
+    else
+        echo "Superusers: I sleep."
 
-    # Create boot password for boot loader.
-    grub-mkpasswd-pbkdf2 | sudo tee "$FILE"
+        FILE=/home/out
 
-    enc_pass=$( grep .sha512 "$FILE" | awk -F "is " '{print $2}' )
+        # Create boot password for boot loader.
+        grub-mkpasswd-pbkdf2 | sudo tee "$FILE"
 
-    # Remove out file
-    rm "$FILE"
+        enc_pass=$( grep .sha512 "$FILE" | awk -F "is " '{print $2}' )
 
-    FILE=/etc/grub.d/40_custom
-    LINE="set superusers=\"root\""
+        # Remove out file
+        rm "$FILE"
 
-    enc_pass="password_pbkdf2 root $enc_pass"
+        FILE=/etc/grub.d/40_custom
+        LINE="set superusers=\"root\""
 
-    # Append superusers and password if not exist.
-    grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
-    grep -qF "$enc_pass" "$FILE" || echo "$enc_pass" | sudo tee --append "$FILE" > /dev/null
+        enc_pass="password_pbkdf2 root $enc_pass"
 
-    # Update grub config file
-    update-grub
+        # Append superusers and password if not exist.
+        grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
+        grep -qF "$enc_pass" "$FILE" || echo "$enc_pass" | sudo tee --append "$FILE" > /dev/null
 
+        # Update grub config file
+        update-grub
+
+    fi
 fi
 
 # 1.4.3 Ensure authentication required for single user mode

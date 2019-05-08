@@ -45,38 +45,12 @@ then
     echo "Root password: EXIST"
 else
 
-    # 1.4.2 Ensure bootloader password is set
-    # ===========================================
-
-    # Check if there's boot password for boot loader.
-    if ( grep -q "^set superusers" /boot/grub/grub.cfg )
+    if ! grep ^root:[*\!]: /etc/shadow
     then
-        echo "Superusers: EXIST"
+        echo "Root password: EXIST"
     else
-        echo "Superusers: I sleep."
-
-        FILE=/home/out
-
-        # Create boot password for boot loader.
-        grub-mkpasswd-pbkdf2 | sudo tee "$FILE"
-
-        enc_pass=$( grep .sha512 "$FILE" | awk -F "is " '{print $2}' )
-
-        # Remove out file
-        rm "$FILE"
-
-        FILE=/etc/grub.d/40_custom
-        LINE="set superusers=\"root\""
-
-        enc_pass="password_pbkdf2 root $enc_pass"
-
-        # Append superusers and password if not exist.
-        grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
-        grep -qF "$enc_pass" "$FILE" || echo "$enc_pass" | sudo tee --append "$FILE" > /dev/null
-
-        # Update grub config file
-        update-grub
-
+        echo "Root password: I sleep."
+        passwd root
     fi
 
     echo "Root password: I sleep."

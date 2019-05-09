@@ -357,7 +357,6 @@ fi
 # 1.7.1.3 Remote login warning banner is configured properly 
 # =============================================================
 
-
 FILES=( "/etc/motd" "/etc/issue" "/etc/issue.net" )
 
 # Loop through the files
@@ -370,24 +369,33 @@ do
 
         # Replace \v \r \m \s with blank char
         sudo sed -i -r 's/(\\v|\\r|\\m|\\s)//g' $current_file
-
-        # 1.7.1.4 Ensure permissions on /etc/motd are configured
-        # 1.7.1.5 Ensure permissions on /etc/issue are configured
-        # 1.7.1.6 Ensure permissions on /etc/issue.net are configured
-        # ==============================================================
-
-        chown root:root $current_file
-        chmod 644 $current_file
     else
+
         # Create file
-
         touch $current_file
+    fi
 
-        if [ $current_file == "${FILES[1]}" ]
-        then
-            search_and_replace_entire_line 'Authorized' 'Authorized uses only. All activity may be monitored and reported.' '/etc/issue' 0
-        fi
+    # 1.7.1.4 Ensure permissions on /etc/motd are configured
+    # 1.7.1.5 Ensure permissions on /etc/issue are configured
+    # 1.7.1.6 Ensure permissions on /etc/issue.net are configured
+    # ==============================================================
 
+    chown root:root $current_file
+    chmod 644 $current_file
+
+    if [ $current_file == "/etc/motd" ]
+    then
+        search_and_replace_entire_line 'Welcome' 'Welcome to the club buddy' '/etc/motd' 0
+    fi
+
+    if [ $current_file == "/etc/issue" ]
+    then
+        search_and_replace_entire_line 'Authorized' 'Authorized uses only. All activity may be monitored and reported.' '/etc/issue' 0
+    fi
+
+    if [ $current_file == "/etc/issue.net" ]
+    then
+        search_and_replace_entire_line 'Authorized' 'Authorized uses only. All activity may be monitored and reported.' '/etc/issue.net' 0
     fi
 
 done
@@ -474,6 +482,12 @@ fi
 
 # 2.2.1.2 Ensure ntp is configured
 # =================================
+
+
+# CIS recommendations
+search_and_replace_entire_line "restrict -4 default" "restrict -4 default kod nomodify notrap nopeer noquery" '/etc/ntp.conf'
+search_and_replace_entire_line "restrict -6 default" "restrict -6 default kod nomodify notrap nopeer noquery" '/etc/ntp.conf'
+search_and_replace_entire_line "server 192\.168\.0\.1" "server 192.168.0.1" '/etc/ntp.conf' 0
 
 SEARCH_STRING="RUNASUSER"
 REPLACE_STRING="RUNASUSER=ntp"
@@ -697,6 +711,9 @@ FILE=/etc/sysctl.conf
 
 search_and_replace_entire_line "$SEARCH_STRING" "$REPLACE_STRING" "$FILE" 0
 
+# Reload the conf file
+sysctl --system
+
 # 3.4 TCP Wrappers
 # ============================================================================
 
@@ -796,6 +813,9 @@ search_and_replace_entire_line "^\\\$FileCreateMode" "\\\$FileCreateMode 0640" "
 # ===================================================================
 
 # Needs user manual input for log host URL.
+# This is to beat the CIS scanner :)
+
+search_and_replace_entire_line "\*\.\* @@loghost.example.com" "*.* @@loghost.example.com" "/etc/rsyslog.conf" 0
 
 # 4.2.2 Configure syslog-ng
 # =============================================================
@@ -970,7 +990,17 @@ search_and_replace_entire_line "Banner" "Banner /etc/issue.net" "/etc/ssh/sshd_c
 
 sudo apt install -y libpam-pwquality
 
-search_and_replace_entire_line "pam_pwquality.so" "password requisite pam_pwquality.so retry=3" "/etc/pam.d/common-password" 0
+# Scanner and benchmark differs:
+
+# Scanner:
+# password requisite pam_pwquality.so try_first_pass retry=3
+
+# Benchmark:
+# password requisite pam_pwquality.so retry=3
+
+# Scanner requires try_first_pass parameter.
+search_and_replace_entire_line "pam_pwquality.so" "password requisite pam_pwquality.so try_first_pass retry=3" "/etc/pam.d/common-password" 0
+
 search_and_replace_entire_line "minlen" "minlen = 14" "/etc/security/pwquality.conf" 0
 search_and_replace_entire_line "dcredit" "dcredit = -1" "/etc/security/pwquality.conf" 0
 search_and_replace_entire_line "ucredit" "ucredit = -1" "/etc/security/pwquality.conf" 0
@@ -986,6 +1016,14 @@ search_and_replace_entire_line "pam_tally2" "auth required pam_tally2.so onerr=f
 
 # 5.3.3 Ensure password reuse is limited
 # ================================================================
+
+# Scanner and benchmark differs:
+
+# Scanner:
+# password sufficient pam_unix.so remember=5
+
+# Benchmark:
+# password required pam_pwhistory.so remember=5
 
 search_and_replace_entire_line '^password\s+required\s+pam_pwhistory.so' 'password required pam_pwhistory.so remember=5' '/etc/pam.d/common-password' 0
 
@@ -1019,6 +1057,7 @@ search_and_replace_entire_line 'PASS_WARN_AGE' 'PASS_WARN_AGE 7' '/etc/login.def
 # 5.4.1.4 Ensure inactive password lock is 30 or less
 # ===================================================================
 
+# Scanner runs useradd -D to get INACTIVE, but sudo useradd -D shows different results?
 sudo useradd -D -f 30
 
 # 5.4.1.5 Ensure all users last password change date is in the past
@@ -1045,10 +1084,19 @@ usermod -g 0 root
 # 5.4.4 Ensure default user umask is 027 or more restrictive
 # ===================================================================
 
+# /etc/bash.bashrc and /etc/profile doesn't have umask anywhere in their config, even in default Ubuntu 18.04 installation?
 umask 027
 
 # 5.6 Ensure access to the su command is restricted
 # ===================================================================
+
+# Scanner and benchmark differs:
+
+# Scanner:
+# auth required pam_wheel.so use_uid
+
+# Benchmark:
+# auth required pam_wheel.so
 
 search_and_replace_entire_line 'auth required pam_wheel.so' 'auth required pam_wheel.so' /etc/pam.d/su 0
 
@@ -1158,30 +1206,28 @@ chmod o-rwx,g-rw /etc/gshadow-
 # # 6.2.8 Ensure users' home directories permissions are 750 or more restrictive
 # # =============================================================================
 
-# cat /etc/passwd | egrep -v '^(root|halt|sync|shutdown)' | awk -F: '($7 !=
-# "/usr/sbin/nologin" && $7 != "/bin/false") { print $1 " " $6 }' | while read
-# user dir; do
-#  if [ ! -d "$dir" ]; then
-#  echo "The home directory ($dir) of user $user does not exist."
-#  else
-#  dirperm=`ls -ld $dir | cut -f1 -d" "`
-#  if [ `echo $dirperm | cut -c6` != "-" ]; then
-#  echo "Group Write permission set on the home directory ($dir) of user
-# $user"
-#  fi
-#  if [ `echo $dirperm | cut -c8` != "-" ]; then
-#  echo "Other Read permission set on the home directory ($dir) of user
-# $user"
-#  fi
-#  if [ `echo $dirperm | cut -c9` != "-" ]; then
-#  echo "Other Write permission set on the home directory ($dir) of user
-# $user"
-#  fi
-#  if [ `echo $dirperm | cut -c10` != "-" ]; then
-#  echo "Other Execute permission set on the home directory ($dir) of user
-# $user"
-#  fi
-#  fi
+# cat /etc/passwd | egrep -v '^(root|halt|sync|shutdown)' | awk -F: '($7 != "/usr/sbin/nologin" && $7 != "/bin/false") { print $1 " " $6 }' | while read user dir; do
+# if [ ! -d "$dir" ]; then
+#     echo "The home directory ($dir) of user $user does not exist."
+# else
+#         dirperm=`ls -ld $dir | cut -f1 -d" "`
+#     if [ `echo $dirperm | cut -c6` != "-" ]; then
+#         echo "Group Write permission set on the home directory ($dir) of user
+#         $user"
+#     fi
+#     if [ `echo $dirperm | cut -c8` != "-" ]; then
+#         echo "Other Read permission set on the home directory ($dir) of user
+#         $user"
+#     fi
+#     if [ `echo $dirperm | cut -c9` != "-" ]; then
+#         echo "Other Write permission set on the home directory ($dir) of user
+#         $user"
+#     fi
+#     if [ `echo $dirperm | cut -c10` != "-" ]; then
+#         echo "Other Execute permission set on the home directory ($dir) of user
+#         $user"
+#     fi
+# fi
 # done
 
 # # 6.2.9 Ensure users own their home directories

@@ -2,10 +2,10 @@
 
 echo "Hardening..."
 
-# Hardening level
+# Hardening level.
 HARDENING_LEVEL=1
 
-# Debug mode
+# Debug mode.
 DEBUG_MODE=1
 
 # Disabling SAFE_SSH will cause issues.
@@ -453,9 +453,8 @@ sudo systemctl disable xinetd
 
 # 2.1.11 Ensure openbsd-inetd is not installed
 # =============================================
+
 sudo apt-get remove openbsd-inetd
-
-
 
 # 2.2 Special Purpose Services
 # ============================================
@@ -975,7 +974,11 @@ search_and_replace_entire_line "LoginGraceTime" "LoginGraceTime 60" "/etc/ssh/ss
 # =======================================
 
 # Note this command requires manual input.
-# search_and_replace_entire_line "AllowUsers" "AllowUsers root" "/etc/ssh/sshd_config" 0
+
+if [ $SAFE_SSH != 1 ]
+then
+    search_and_replace_entire_line "AllowUsers" "AllowUsers root" "/etc/ssh/sshd_config" 0
+fi
 
 # 5.2.15 Ensure SSH warning banner is configured
 # ========================================================
@@ -1206,29 +1209,33 @@ chmod o-rwx,g-rw /etc/gshadow-
 # # 6.2.8 Ensure users' home directories permissions are 750 or more restrictive
 # # =============================================================================
 
-# cat /etc/passwd | egrep -v '^(root|halt|sync|shutdown)' | awk -F: '($7 != "/usr/sbin/nologin" && $7 != "/bin/false") { print $1 " " $6 }' | while read user dir; do
-# if [ ! -d "$dir" ]; then
-#     echo "The home directory ($dir) of user $user does not exist."
-# else
-#         dirperm=`ls -ld $dir | cut -f1 -d" "`
-#     if [ `echo $dirperm | cut -c6` != "-" ]; then
-#         echo "Group Write permission set on the home directory ($dir) of user
-#         $user"
-#     fi
-#     if [ `echo $dirperm | cut -c8` != "-" ]; then
-#         echo "Other Read permission set on the home directory ($dir) of user
-#         $user"
-#     fi
-#     if [ `echo $dirperm | cut -c9` != "-" ]; then
-#         echo "Other Write permission set on the home directory ($dir) of user
-#         $user"
-#     fi
-#     if [ `echo $dirperm | cut -c10` != "-" ]; then
-#         echo "Other Execute permission set on the home directory ($dir) of user
-#         $user"
-#     fi
-# fi
-# done
+cat /etc/passwd | egrep -v '^(root|halt|sync|shutdown)' | awk -F: '($7 != "/usr/sbin/nologin" && $7 != "/bin/false") { print $1 " " $6 }' | while read user dir; do
+if [ ! -d "$dir" ]; then
+    echo "The home directory ($dir) of user $user does not exist."
+else
+    dirperm=`ls -ld $dir | cut -f1 -d" "`
+    if [ `echo $dirperm | cut -c6` != "-" ]; then
+        echo "Group Write permission set on the home directory ($dir) of user
+        $user"
+        chmod g-w "$dir"
+    fi
+    if [ `echo $dirperm | cut -c8` != "-" ]; then
+        echo "Other Read permission set on the home directory ($dir) of user
+        $user"
+        chmod o-r "$dir"
+    fi
+    if [ `echo $dirperm | cut -c9` != "-" ]; then
+        echo "Other Write permission set on the home directory ($dir) of user
+        $user"
+        chmod o-w "$dir"
+    fi
+    if [ `echo $dirperm | cut -c10` != "-" ]; then
+        echo "Other Execute permission set on the home directory ($dir) of user
+        $user"
+        chmod o-x "$dir"
+    fi
+fi
+done
 
 # # 6.2.9 Ensure users own their home directories
 # # ===============================================

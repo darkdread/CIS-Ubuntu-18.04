@@ -45,33 +45,28 @@ then
     echo "Root password: EXIST"
 else
 
-    cat /etc/passwd | egrep -v '^(root|halt|sync|shutdown)' | awk -F: '($7 != "/usr/sbin/nologin" && $7 != "/bin/false") { print $1 " " $6 }' | while read user dir; do
-    if [ ! -d "$dir" ]; then
-        echo "The home directory ($dir) of user $user does not exist."
+    # Add cron to automatically run aide every day at 5am.
+    LINE="0 5 * * * /usr/bin/aide.wrapper --config /etc/aide/aide.conf --check"
+    FILE=/home/tmp.cron
+
+    # If crontab exist for user, copy it into /home/tmp.cron. Otherwise, create a new file.
+    crontab -l -u root 2>/dev/null
+
+    if [ $? -eq 0 ]
+    then
+        crontab -u root -l > $FILE
     else
-        dirperm=`ls -ld $dir | cut -f1 -d" "`
-        if [ `echo $dirperm | cut -c6` != "-" ]; then
-            echo "Group Write permission set on the home directory ($dir) of user
-            $user"
-            chmod g-w "$dir"
-        fi
-        if [ `echo $dirperm | cut -c8` != "-" ]; then
-            echo "Other Read permission set on the home directory ($dir) of user
-            $user"
-            chmod o-r "$dir"
-        fi
-        if [ `echo $dirperm | cut -c9` != "-" ]; then
-            echo "Other Write permission set on the home directory ($dir) of user
-            $user"
-            chmod o-w "$dir"
-        fi
-        if [ `echo $dirperm | cut -c10` != "-" ]; then
-            echo "Other Execute permission set on the home directory ($dir) of user
-            $user"
-            chmod o-x "$dir"
-        fi
+        touch $FILE
     fi
-    done
+
+    # Add cronjob to temp file.
+    grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
+
+    # Add new temp file to crontab.
+    crontab -u root $FILE
+
+    # Remove temp file.
+    rm $FILE
 
     echo "Root password: I sleep."
 fi

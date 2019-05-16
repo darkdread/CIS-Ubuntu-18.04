@@ -6,10 +6,10 @@ echo "Hardening..."
 HARDENING_LEVEL=1
 
 # Debug mode.
-DEBUG_MODE=1
+DEBUG_MODE=0
 
 # Disabling SAFE_SSH will cause issues.
-SAFE_SSH=1
+SAFE_SSH=0
 
 
 # $1 is the search string

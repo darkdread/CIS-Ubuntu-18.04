@@ -9,7 +9,7 @@ HARDENING_LEVEL=1
 DEBUG_MODE=0
 
 # Disabling SAFE_SSH will cause issues.
-SAFE_SSH=0
+SAFE_SSH=1
 
 
 # $1 is the search string
@@ -304,9 +304,9 @@ sysctl -w kernel.randomize_va_space=2
 # ================================
 
 # Restore binaries to default
-prelink -ua
+# prelink -ua
 
-apt remove prelink
+# apt remove prelink
 
 # 1.6 Mandatory Access Control
 # ============================

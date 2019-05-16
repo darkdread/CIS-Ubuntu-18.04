@@ -409,8 +409,15 @@ SEARCH_STRING=( "[org/gnome/login-screen]" "banner-message-enable" "banner-messa
 REPLACE_STRING=( "[org/gnome/login-screen]" "banner-message-enable=true" "banner-message-text='Authorized uses only. All activity may be monitored and reported.'" )
 
 # Create file if not exist.
-if ! [ -f $FILE ]
+if ! [ -f "$FILE" ]
 then
+    # If directory doesn't exist
+    if ! [ -d "/etc/gdm3" ]
+    then
+        # Make dir of gdm3
+        mkdir "/etc/gdm3"
+    fi
+
     sudo touch "$FILE"
 
     # Append replace string

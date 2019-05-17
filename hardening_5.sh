@@ -66,7 +66,7 @@ function search_and_replace_entire_line () {
 # 5.1.1 Ensure cron daemon is enabled
 # ======================================
 
-systelctl enable cron
+systemctl enable cron
 
 # 5.1.2 Ensure permissions on /etc/crontab are configured
 # ========================================================

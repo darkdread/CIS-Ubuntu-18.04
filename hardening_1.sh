@@ -112,6 +112,7 @@ grep -F "$LINE" /etc/fstab || echo "$LINE" | sudo tee --append /etc/fstab > /dev
 # =====================================================================
 
 echo "Home partition example: /dev/xvda1"
+echo "If home partition doesn't exist, leave it empty."
 read -p "Enter home partition: " HOME_PARTITION
 
 if [ -b $HOME_PARTITION ]

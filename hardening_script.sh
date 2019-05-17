@@ -112,6 +112,7 @@ grep -F "$LINE" /etc/fstab || echo "$LINE" | sudo tee --append /etc/fstab > /dev
 # =====================================================================
 
 echo "Home partition example: /dev/xvda1"
+echo "If home partition doesn't exist, leave it empty."
 read -p "Enter home partition: " HOME_PARTITION
 
 if [ -b $HOME_PARTITION ]
@@ -857,7 +858,7 @@ chmod -R g-wx,o-rwx /var/log/*
 # 5.1.1 Ensure cron daemon is enabled
 # ======================================
 
-systelctl enable cron
+systemctl enable cron
 
 # 5.1.2 Ensure permissions on /etc/crontab are configured
 # ========================================================

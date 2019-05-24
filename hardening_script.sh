@@ -1152,7 +1152,7 @@ usermod -g 0 root
 
 # /etc/bash.bashrc and /etc/profile doesn't have umask anywhere in their config, even in default Ubuntu 18.04 installation?
 # "/etc/profile.d/*.sh"
-FILES = ( "/etc/bash.bashrc" "/etc/profile" )
+FILES=( "/etc/bash.bashrc" "/etc/profile" )
 
 for current_file in "$FILES[@]"
 do

@@ -423,10 +423,26 @@ do
     chown root:root $current_file
     chmod 644 $current_file
 
+    # Scanner and benchmark differs:
+
+    # Scanner:
+    # All activities performed on this system will be monitored.
+
+    # Benchmark:
+    # No specific requirements for message to show.
+
     if [ $current_file == "/etc/motd" ]
     then
         search_and_replace_entire_line 'Welcome' 'Welcome to the club buddy' '/etc/motd' 0
     fi
+
+    # Scanner and benchmark differs:
+
+    # Scanner:
+    # All activities performed on this system will be monitored.
+
+    # Benchmark:
+    # Authorized uses only. All activity may be monitored and reported.
 
     if [ $current_file == "/etc/issue" ]
     then
@@ -476,3 +492,7 @@ do
     sed -i -r "s|^${SEARCH_STRING[i]}$|${REPLACE_STRING[i]}|g" $FILE
 
 done
+
+echo "Hardened!"
+
+exit 1

@@ -2,6 +2,45 @@
 
 echo "Hardening..."
 
+# ISSUE = [FAILED] count
+
+# Manual work
+# Ensure nodev option set on /home partition = 1
+# Bootloader = 3
+# Ensure /etc/hosts.allow is configured = 1
+# Ensure /etc/hosts.deny is configured = 1
+# Ensure rsyslog is configured to send logs to a remote host = 1
+# Ensure mail transfer agent is configured for local-only mode = 1
+# Ensure inactive password lock is 30 days or less = 1
+# Ensure all users last password change date is in the past = 1
+
+
+# Scanner diffs
+# Ensure message of the day is configured properly = 3
+# Ensure password reuse is limited = 1
+# Ensure access to the su command is restricted = 1
+# sshd_config = 15 ? (It should be working.) (I think scanner scans for a space before and after every key=value line)
+
+
+# Scanner issues (must be root or permission denied)
+# 1.3.2 Ensure filesystem integrity is regularly checked = 1
+# 3.6.2 Ensure default deny firewall policy = 3
+
+
+# Not Scored
+# Ensure IPv6 router advertisements are not accepted = 9
+# Uncommon Network Protocol = 4
+# 4.2.1.2 Ensure logging is configured = 13
+# Ensure remote rsyslog messages are only accepted on designated log hosts = 2
+
+
+# Working on
+# 1.5.1 Ensure core dumps are restricted = 1 (Done)
+# 3.2.4 Ensure suspicious packets are logged = 4 (Done)
+# 3.2.7 Ensure Reverse Path Filtering is enabled = 2 (Done)
+# 4.2.4 Ensure permissions on all logfiles are configured = 1 (This should work without changing)
+# 5.4.4 Ensure default umask is 027 or more restrictive = 2
+
 # Hardening level.
 HARDENING_LEVEL=1
 
@@ -282,7 +321,7 @@ FILE=/etc/security/limits.conf
 
 grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
 
-LINE="fs.suid_dumpable = 0"
+LINE="fs.suid_dumpable=0"
 FILE=/etc/sysctl.conf
 
 grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
@@ -671,7 +710,7 @@ done
 # =====================================================
 
 SEARCH_STRING=( "net.ipv4.conf.all.log_martians" "net.ipv4.conf.default.log_martians" )
-REPLACE_STRING=( "net.ipv4.conf.all.log_martians = 0" "net.ipv4.conf.default.log_martians = 0" )
+REPLACE_STRING=( "net.ipv4.conf.all.log_martians = 1" "net.ipv4.conf.default.log_martians = 1" )
 FILE=/etc/sysctl.conf
 
 for (( i=0; i<2; i++ ))
@@ -701,7 +740,7 @@ search_and_replace_entire_line "$SEARCH_STRING" "$REPLACE_STRING" "$FILE" 0
 # =====================================================
 
 SEARCH_STRING=( "net.ipv4.conf.all.rp_filter" "net.ipv4.conf.default.rp_filter" )
-REPLACE_STRING=( "net.ipv4.conf.all.rp_filter = 0" "net.ipv4.conf.default.rp_filter = 0" )
+REPLACE_STRING=( "net.ipv4.conf.all.rp_filter = 1" "net.ipv4.conf.default.rp_filter = 1" )
 FILE=/etc/sysctl.conf
 
 for (( i=0; i<2; i++ ))
@@ -1096,6 +1135,14 @@ usermod -g 0 root
 # ===================================================================
 
 # /etc/bash.bashrc and /etc/profile doesn't have umask anywhere in their config, even in default Ubuntu 18.04 installation?
+# "/etc/profile.d/*.sh"
+FILES = ( "/etc/bash.bashrc" "/etc/profile" )
+
+for current_file in "$FILES[@]"
+do
+    search_and_replace_entire_line 'umask' 'umask 027' "$current_file" 0
+done
+
 umask 027
 
 # 5.6 Ensure access to the su command is restricted

@@ -5,21 +5,23 @@ echo "Hardening..."
 # ISSUE = [FAILED] count
 
 # Manual work
-# Ensure nodev option set on /home partition = 1
-# Bootloader = 3
-# Ensure /etc/hosts.allow is configured = 1
-# Ensure /etc/hosts.deny is configured = 1
-# Ensure rsyslog is configured to send logs to a remote host = 1
-# Ensure mail transfer agent is configured for local-only mode = 1
-# Ensure inactive password lock is 30 days or less = 1
-# Ensure all users last password change date is in the past = 1
+# 1.1.13 Ensure nodev option set on /home partition = 1
+# 1.4 Bootloader = 3
+# 2.2.15 Ensure mail transfer agent is configured for local-only mode = 1
+# 3.4.2 Ensure /etc/hosts.allow is configured = 1
+# 3.4.3 Ensure /etc/hosts.deny is configured = 1
+# 4.2.14 Ensure rsyslog is configured to send logs to a remote host = 1
+# 5.4.1.4 Ensure inactive password lock is 30 days or less = 1
+# 5.4.1.5 Ensure all users last password change date is in the past = 1
 
 
 # Scanner diffs
-# Ensure message of the day is configured properly = 3
-# Ensure password reuse is limited = 1
-# Ensure access to the su command is restricted = 1
-# sshd_config = 15 ? (It should be working.) (I think scanner scans for a space before and after every key=value line)
+# 1.7.1.1 Ensure message of the day is configured properly - banner text = 1
+# 1.7.1.2 Ensure local login warning banner is configured properly - banner text = 1
+# 1.7.1.3 Ensure remote login warning banner is configured properly - banner text = 1
+# 5.2 sshd_config = 15 (It should be working.) (I think scanner scans for a space before and after every key=value line)
+# 5.3.3 Ensure password reuse is limited = 1
+# 5.6 Ensure access to the su command is restricted = 1
 
 
 # Scanner issues (must be root or permission denied)
@@ -28,17 +30,17 @@ echo "Hardening..."
 
 
 # Not Scored
-# Ensure IPv6 router advertisements are not accepted = 9
-# Uncommon Network Protocol = 4
+# 3.3 IPv6 = 9
+# 3.5 Uncommon Network Protocol = 4
 # 4.2.1.2 Ensure logging is configured = 13
-# Ensure remote rsyslog messages are only accepted on designated log hosts = 2
+# 4.2.1.5 Ensure remote rsyslog messages are only accepted on designated log hosts = 2
 
 
 # Working on
-# 1.5.1 Ensure core dumps are restricted = 1 (Done)
+# 1.5.1 Ensure core dumps are restricted = 1
 # 3.2.4 Ensure suspicious packets are logged = 4 (Done)
 # 3.2.7 Ensure Reverse Path Filtering is enabled = 2 (Done)
-# 4.2.4 Ensure permissions on all logfiles are configured = 1 (This should work without changing)
+# 4.2.4 Ensure permissions on all logfiles are configured = 1
 # 5.4.4 Ensure default umask is 027 or more restrictive = 2
 
 # Hardening level.

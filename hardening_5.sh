@@ -346,7 +346,7 @@ usermod -g 0 root
 # "/etc/profile.d/*.sh"
 FILES=( "/etc/bash.bashrc" "/etc/profile" )
 
-for current_file in "$FILES[@]"
+for current_file in "${FILES[@]}"
 do
     search_and_replace_entire_line 'umask' 'umask 027' "$current_file" 0
 done

@@ -5,12 +5,12 @@ echo "Hardening..."
 # ISSUE = [FAILED] count
 
 # Manual work
-# 1.1.13 Ensure nodev option set on /home partition = 1
-# 1.4 Bootloader = 3
-# 2.2.15 Ensure mail transfer agent is configured for local-only mode = 1
-# 3.4.2 Ensure /etc/hosts.allow is configured = 1
-# 3.4.3 Ensure /etc/hosts.deny is configured = 1
-# 4.2.14 Ensure rsyslog is configured to send logs to a remote host = 1
+# 1.1.13 Ensure nodev option set on /home partition = 1 (not sure how)
+# 1.4 Bootloader = 3 (pending test)
+# 2.2.15 Ensure mail transfer agent is configured for local-only mode = 1 (pending test)
+# 3.4.2 Ensure /etc/hosts.allow is configured = 1 (pending test)
+# 3.4.3 Ensure /etc/hosts.deny is configured = 1 (pending test)
+# 4.2.1.4 Ensure rsyslog is configured to send logs to a remote host = 1
 # 5.4.1.4 Ensure inactive password lock is 30 days or less = 1
 # 5.4.1.5 Ensure all users last password change date is in the past = 1
 
@@ -625,6 +625,8 @@ systemctl disable snmp
 # ====================================================================
 
 # Depends on what mail agent this Ubuntu is using.
+search_and_replace_entire_line "inet_interfaces" "inet_interfaces = loopback-only" "/etc/postfix/main.cf" 0
+systemctl restart postfix
 
 # 2.2.16 Ensure rsync service is not enabled
 # ==============================================
@@ -881,6 +883,9 @@ search_and_replace_entire_line "^\\\$FileCreateMode" "\\\$FileCreateMode 0640" "
 
 search_and_replace_entire_line "\*\.\* @@loghost.example.com" "*.* @@loghost.example.com" "/etc/rsyslog.conf" 0
 
+# restart rsyslog
+pkill -HUP rsyslogd
+
 # 4.2.2 Configure syslog-ng
 # =============================================================
 
@@ -1136,6 +1141,18 @@ sudo useradd -D -f 30
 # <list of users>
 # #> chage --list <user>
 # Last Change
+
+# List of all users
+awk -F: '{print $1}' /etc/passwd |
+# Get passwd info of each user
+xargs -I {} chage --list {} |
+# Get last password change of user
+grep "Last password change" |
+awk -F: '{pring $2'} |
+xargs -I {} echo {}
+
+# Force password expiry on specific user
+# passwd --expire $username
 
 
 

@@ -1,8 +1,7 @@
-# List of all users
-awk -F: '{print $1}' /etc/passwd |
-# Get passwd info of each user
-xargs -I {} chage --list {} |
-# Get last password change of user
-grep "Last password change" |
-awk -F: '{pring $2'} |
-xargs -I {} echo {}
+# Today's date
+$today = date --date
+
+# Get all users' last password change date
+awk -F: '{print $1}' /etc/passwd | xargs -I {} chage --list {} | grep "Last password change" | awk -F: '{print $2'} | xargs -I {} date --date "{}"
+
+echo "Today: $today"

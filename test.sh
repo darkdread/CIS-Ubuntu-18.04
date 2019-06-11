@@ -30,8 +30,9 @@ do
     change_date=${arr_dates[index]}
     user=${ALL_USERS[index]}
     echo $change_date
-    if [ $change_date -lt $today ]
+    if [ $change_date -gt $today ]
     then
-        echo "User: $user last password change > today!"
+        echo "User: $user last password change > today, forcing change of new password on next login."
+        passwd --expire "$user"
     fi
 done

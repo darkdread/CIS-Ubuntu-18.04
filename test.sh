@@ -1,8 +1,11 @@
 # Today's date in seconds
 today=$(date +'%s')
 
+# Get all users
+ALL_USERS=$(awk -F: '{print $1}' /etc/passwd)
+
 # Get all users' last password change date in seconds
-ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd \
+ALL_USERS_LAST_CHANGE_DATE=$($ALL_USERS \
     | xargs -I {} chage --list {} \
     | grep "Last password change" \
     | awk -F: '{print $2'} \

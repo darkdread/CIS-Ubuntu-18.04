@@ -1,8 +1,8 @@
 # Today's date in seconds
-today=$(date --date "" + '%s')
+today=$(date +'%s')
 
-# Get all users' last password change date
-ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd | xargs -I {} chage --list {} | grep "Last password change" | awk -F: '{print $2'} | xargs -I {} date --date "{}" + '%s' | xargs -I {} echo "{}, ")
+# Get all users' last password change date in seconds
+ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd | xargs -I {} chage --list {} | grep "Last password change" | awk -F: '{print $2'} | xargs -I {} date --date "{}" +'%s' | xargs -I {} echo "{}, ")
 
 str=$ALL_USERS_LAST_CHANGE_DATE
 
@@ -19,5 +19,8 @@ echo $arr_dates
 for change_date in "${arr_dates[@]}"
 do
     echo $change_date
-    dtSec
+    if [ $change_date gt $today ]
+    then
+        echo "Last password change > today!"
+    fi
 done

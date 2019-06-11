@@ -19,7 +19,7 @@ echo $arr_dates
 for change_date in "${arr_dates[@]}"
 do
     echo $change_date
-    if [ $change_date gt $today ]
+    if [ $change_date -gt $today ]
     then
         echo "Last password change > today!"
     fi

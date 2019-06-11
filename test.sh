@@ -2,7 +2,13 @@
 today=$(date +'%s')
 
 # Get all users' last password change date in seconds
-ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd | xargs -I {} chage --list {} | grep "Last password change" | awk -F: '{print $2'} | xargs -I {} date --date "{}" +'%s' | xargs -I {} echo "{}, ")
+ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd \
+    | xargs -I {} chage --list {} \
+    | grep "Last password change" \
+    | awk -F: '{print $2'} \
+    | xargs -I {} date --date "{}" +'%s' \
+    | xargs -I {} echo "{}, "
+)
 
 str=$ALL_USERS_LAST_CHANGE_DATE
 
@@ -22,5 +28,6 @@ do
     if [ $change_date -gt $today ]
     then
         echo "Last password change > today!"
+
     fi
 done

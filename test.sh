@@ -25,12 +25,13 @@ done                                # the loop deletes $str, so make a copy if n
 echo "Today: $today"
 echo $arr_dates
 
-for change_date in "${arr_dates[@]}"
+for index in "${!arr_dates[@]}"
 do
+    change_date=${arr_dates[index]}
+    user=${ALL_USERS[index]}
     echo $change_date
-    if [ $change_date -gt $today ]
+    if [ $change_date -lt $today ]
     then
-        echo "Last password change > today!"
-
+        echo "User: $user last password change > today!"
     fi
 done

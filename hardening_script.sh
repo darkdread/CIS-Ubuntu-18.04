@@ -11,8 +11,8 @@ echo "Hardening..."
 # 3.4.2 Ensure /etc/hosts.allow is configured = 1 (pending test)
 # 3.4.3 Ensure /etc/hosts.deny is configured = 1 (pending test)
 # 4.2.1.4 Ensure rsyslog is configured to send logs to a remote host = 1
-# 5.4.1.4 Ensure inactive password lock is 30 days or less = 1
-# 5.4.1.5 Ensure all users last password change date is in the past = 1
+# 5.4.1.4 Ensure inactive password lock is 30 days or less = 1 (pending test)
+# 5.4.1.5 Ensure all users last password change date is in the past = 1 (pending test)
 
 
 # Scanner diffs
@@ -792,11 +792,13 @@ sudo apt install -y tcpd
 # ===================================================
 # For this section, user supervision is required.
 
+echo "ALL: ALL" >> /etc/hosts.allow
+
 # 3.4.3 Ensure /etc/hosts.deny is configured
 # ===================================================
 # For this section, user supervision is required.
 
-# echo "ALL: ALL" >> /etc/hosts.deny
+echo "ALL: ALL" >> /etc/hosts.deny
 
 # 3.4.4 Ensure permissions on /etc/hosts.allow is configured
 # ===========================================================
@@ -1130,7 +1132,7 @@ search_and_replace_entire_line 'PASS_WARN_AGE' 'PASS_WARN_AGE 7' '/etc/login.def
 # 5.4.1.4 Ensure inactive password lock is 30 or less
 # ===================================================================
 
-# Scanner runs useradd -D to get INACTIVE, but sudo useradd -D shows different results?
+# Scanner runs /usr/sbin/useradd -D to get INACTIVE=-1, but doing it manually shows different results?
 sudo useradd -D -f 30
 
 # 5.4.1.5 Ensure all users last password change date is in the past
@@ -1142,19 +1144,42 @@ sudo useradd -D -f 30
 # #> chage --list <user>
 # Last Change
 
-# List of all users
-awk -F: '{print $1}' /etc/passwd |
-# Get passwd info of each user
-xargs -I {} chage --list {} |
-# Get last password change of user
-grep "Last password change" |
-awk -F: '{pring $2'} |
-xargs -I {} echo {}
+# Today's date in seconds
+today=$(date +'%s')
 
-# Force password expiry on specific user
-# passwd --expire $username
+# Get all users
+ALL_USERS=($(awk -F: '{print $1}' /etc/passwd))
 
+# Get all users' last password change date in seconds
+ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd \
+    | xargs -I {} chage --list {} \
+    | grep "Last password change" \
+    | awk -F: '{print $2'} \
+    | xargs -I {} date --date "{}" +'%s' \
+    | xargs -I {} echo "{}, "
+)
 
+str=$ALL_USERS_LAST_CHANGE_DATE
+
+# https://stackoverflow.com/a/47500443
+
+arr_dates=()
+while [[ $str =~ ([^,]+)(,[ ]+|$) ]]; do
+    arr_dates+=("${BASH_REMATCH[1]}")   # capture the field
+    i=${#BASH_REMATCH}              # length of field + delimiter
+    str=${str:i}                    # advance the string by that length
+done                                # the loop deletes $str, so make a copy if needed
+
+for index in "${!arr_dates[@]}"
+do
+    change_date=${arr_dates[index]}
+    user=${ALL_USERS[index]}
+    if [ $change_date -gt $today ]
+    then
+        echo "User: $user last password change > today, forcing change of new password on next login."
+        passwd --expire "$user"
+    fi
+done
 
 # 5.4.2 Ensure system accounts are non-login
 # ===================================================================

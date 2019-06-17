@@ -15,6 +15,8 @@ ALL_USERS_LAST_CHANGE_DATE=$(awk -F: '{print $1}' /etc/passwd \
 
 str=$ALL_USERS_LAST_CHANGE_DATE
 
+# https://stackoverflow.com/a/47500443
+
 arr_dates=()
 while [[ $str =~ ([^,]+)(,[ ]+|$) ]]; do
     arr_dates+=("${BASH_REMATCH[1]}")   # capture the field
@@ -22,14 +24,10 @@ while [[ $str =~ ([^,]+)(,[ ]+|$) ]]; do
     str=${str:i}                    # advance the string by that length
 done                                # the loop deletes $str, so make a copy if needed
 
-echo "Today: $today"
-echo $arr_dates
-
 for index in "${!arr_dates[@]}"
 do
     change_date=${arr_dates[index]}
     user=${ALL_USERS[index]}
-    echo $change_date
     if [ $change_date -gt $today ]
     then
         echo "User: $user last password change > today, forcing change of new password on next login."

@@ -265,7 +265,7 @@ sudo chmod u+rw,og-rwx /boot/grub/grub.cfg
 
 # Check if there's boot password for boot loader.
 
-if [ $SAFE_SSH != 1 ]
+if [ $SAFE_SSH != 1 ] && false;
 then
 
     if ( grep -q "^set superusers" /boot/grub/grub.cfg )

@@ -5,14 +5,14 @@ echo "Hardening..."
 # ISSUE = [FAILED] count
 
 # Manual work
-# 1.1.13 Ensure nodev option set on /home partition = 1 (not sure how)
+# 1.1.13 Ensure nodev option set on /home partition = 1 (not sure how?)
 # 1.4 Bootloader = 3 (pending test)
-# 2.2.15 Ensure mail transfer agent is configured for local-only mode = 1 (pending test)
+# 2.2.15 Ensure mail transfer agent is configured for local-only mode = 1 (passed!)
 # 3.4.2 Ensure /etc/hosts.allow is configured = 1 (pending test)
 # 3.4.3 Ensure /etc/hosts.deny is configured = 1 (pending test)
 # 4.2.1.4 Ensure rsyslog is configured to send logs to a remote host = 1
-# 5.4.1.4 Ensure inactive password lock is 30 days or less = 1 (pending test)
-# 5.4.1.5 Ensure all users last password change date is in the past = 1 (pending test)
+# 5.4.1.4 Ensure inactive password lock is 30 days or less = 1 (Scanner runs /usr/sbin/useradd -D to get INACTIVE=-1, but doing it manually shows different results?)
+# 5.4.1.5 Ensure all users last password change date is in the past = 1 (Scanner shows permission denied)
 
 
 # Scanner diffs
@@ -323,12 +323,12 @@ FILE=/etc/security/limits.conf
 
 grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
 
-LINE="fs.suid_dumpable=0"
+LINE="fs.suid_dumpable = 0"
 FILE=/etc/sysctl.conf
 
 grep -qF "$LINE" "$FILE" || echo "$LINE" | sudo tee --append "$FILE" > /dev/null
 
-sysctl -w fs.suid_dumpable=0
+sudo sysctl -w fs.suid_dumpable=0
 
 # 1.5.3 Ensure address space layout randomization (ASLR) is enabled
 # =====================================================================
